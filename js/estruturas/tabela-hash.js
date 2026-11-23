@@ -33,6 +33,27 @@ class TabelaHash {
         }
         return h;
     }
+
+    /*
+     * Insere um par de chave e valor na tabela.
+     * Se a chave já existir, o valor associado é substituído.
+     * @param {string} chave Chave do registro, ex: "john_doe".
+     * @param {*} valor Dado associado à chave (ex: o objeto do usuário).
+     * Complexidade: geralmemte O(1). O(n) quando todas as chaves colidem.
+     */
+    inserir(chave, valor) {
+        const lista = this.posicoes[this.hash(chave)];
+
+        // Percorre a lista de colisões para verificar se a chave já está presente evitando registros duplicados para a mesma chave.
+        for (let i = 0; i < lista.length; i++) {
+            if (lista[i][0] === chave) {
+                lista[i][1] = valor;
+                return;
+            }
+        }
+
+        lista.push([chave, valor]);
+    }
 }
 
 module.exports = TabelaHash;
