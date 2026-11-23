@@ -28,6 +28,45 @@ function comandoBuscar(rede, parametros) {
 }
 
 /**
+ * Lista os posts publicados entre duas datas, incluindo as duas, em ordem cronológica.
+ * @param {RedeSocial} rede Rede social já carregada.
+ * @param {string[]} parametros Parâmetros do comando; espera data inicial e data final.
+ */
+function comandoPostsEntre(rede, parametros) {
+    const inicio = parametros[0];
+    const fim = parametros[1];
+    if (inicio === undefined || fim === undefined) {
+        console.error("informe as duas datas. Uso: posts-entre AAAA-MM-DD AAAA-MM-DD");
+        process.exit(1);
+    }
+
+    const datas = [inicio, fim];
+    for (let i = 0; i < datas.length; i++) {
+        const partes = datas[i].split("-");
+        const mes = Number(partes[1]);
+        const dia = Number(partes[2]);
+        // Alem do formato, confere se o mês e o dia existem, para recusar datas como 2025-13-40.
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(datas[i]) || mes < 1 || mes > 12 || dia < 1 || dia > 31) {
+            console.error("data " + datas[i] + " inválida. Use o formato AAAA-MM-DD.");
+            process.exit(1);
+        }
+    }
+
+    // As datas no formato AAAA-MM-DD podem ser comparadas como texto, porque o ano vem antes do mês e do dia.
+    if (inicio > fim) {
+        console.error("a data inicial " + inicio + " é maior que a data final " + fim + ".");
+        process.exit(1);
+    }
+
+    const posts = rede.buscarPostsEntre(inicio, fim);
+    for (let i = 0; i < posts.length; i++) {
+        const post = posts[i];
+        console.log(`${post.data}  ${post.autor.usuario}  ${post.curtidas} curtidas  ${post.texto}`);
+    }
+    console.log(posts.length + " posts encontrados entre " + inicio + " e " + fim + ".");
+}
+
+/**
  * Carrega os dados, identifica o comando recebido por argumento e o executa.
  */
 function main() {
@@ -41,6 +80,9 @@ function main() {
     switch (comando) {
         case "buscar":
             comandoBuscar(rede, parametros);
+            break;
+        case "posts-entre":
+            comandoPostsEntre(rede, parametros);
             break;
         default:
             console.error('comando "' + comando + '" inválido');

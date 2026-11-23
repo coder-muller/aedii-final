@@ -1,5 +1,7 @@
 const TabelaHash = require("./estruturas/tabela-hash");
+const { ArvoreAVL } = require("./estruturas/arvore-avl");
 const Usuario = require("./modelos/usuario");
+const Post = require("./modelos/post");
 
 /**
  * Núcleo da rede social.
@@ -33,10 +35,16 @@ class RedeSocial {
             seguido.qtdSeguidores++;
         }
 
+        // Árvore AVL com os posts indexados pela data, usada no comando posts-entre.
+        this.postsPorData = new ArvoreAVL();
+
         for (let i = 0; i < posts.length; i++) {
-            const autor = this.usuariosPorId[Number(posts[i][1])];
+            const [id, idAutor, data, curtidas, texto] = posts[i];
+            const autor = this.usuariosPorId[Number(idAutor)];
+            const post = new Post(Number(id), autor, data, Number(curtidas), texto);
             autor.qtdPosts++;
-            autor.totalCurtidas += Number(posts[i][3]);
+            autor.totalCurtidas += post.curtidas;
+            this.postsPorData.inserir(data, post);
         }
     }
 
@@ -47,6 +55,17 @@ class RedeSocial {
      */
     buscarUsuario(usuario) {
         return this.tabelaUsuarios.buscar(usuario);
+    }
+
+    /**
+     * Busca os posts publicados entre duas datas, incluindo as duas, em ordem cronológica.
+     * @param {string} inicio Data inicial (AAAA-MM-DD).
+     * @param {string} fim Data final (AAAA-MM-DD).
+     * @returns {Post[]} Posts encontrados.
+     * Complexidade O(log n + k), sendo k a quantidade de datas dentro do intervalo.
+     */
+    buscarPostsEntre(inicio, fim) {
+        return this.postsPorData.buscarIntervalo(inicio, fim);
     }
 }
 
