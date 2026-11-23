@@ -1,5 +1,6 @@
 const TabelaHash = require("./estruturas/tabela-hash");
 const { ArvoreAVL } = require("./estruturas/arvore-avl");
+const mergeSort = require("./estruturas/merge-sort");
 const Usuario = require("./modelos/usuario");
 const Post = require("./modelos/post");
 
@@ -66,6 +67,35 @@ class RedeSocial {
      */
     buscarPostsEntre(inicio, fim) {
         return this.postsPorData.buscarIntervalo(inicio, fim);
+    }
+
+    /**
+     * Ordena todos os usuários do maior para o menor engajamento, com desempate pela ordem alfabética do @usuario.
+     * @returns {Usuario[]} Usuários na ordem do ranking.
+     * Complexidade O(n log n) por causa do Merge Sort.
+     */
+    gerarRanking() {
+        const usuarios = [];
+        // A posição 0 do vetor fica vazia porque os ids começam em 1.
+        for (let id = 1; id < this.usuariosPorId.length; id++) {
+            usuarios.push(this.usuariosPorId[id]);
+        }
+
+        return mergeSort(usuarios, (a, b) => {
+            // Subtrair b de a coloca o maior engajamento primeiro.
+            const diferenca = b.engajamento() - a.engajamento();
+            if (diferenca !== 0) {
+                return diferenca;
+            }
+            // No empate a comparação dos textos coloca o @usuario em ordem alfabética.
+            if (a.usuario < b.usuario) {
+                return -1;
+            }
+            if (a.usuario > b.usuario) {
+                return 1;
+            }
+            return 0;
+        });
     }
 }
 

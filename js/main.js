@@ -67,6 +67,42 @@ function comandoPostsEntre(rede, parametros) {
 }
 
 /**
+ * Mostra os primeiros colocados do ranking de engajamento.
+ * @param {RedeSocial} rede Rede social já carregada.
+ * @param {string[]} parametros Parâmetros do comando; aceita --limite N (padrão 20).
+ */
+function comandoRanking(rede, parametros) {
+    let limite = 20;
+
+    for (let i = 0; i < parametros.length; i++) {
+        if (parametros[i] === "--limite") {
+            const valor = parametros[i + 1];
+            if (valor === undefined || !/^\d+$/.test(valor) || Number(valor) < 1) {
+                console.error("o limite deve ser um número inteiro maior que zero. Uso: ranking --limite 20");
+                process.exit(1);
+            }
+            limite = Number(valor);
+            // Pula o valor do limite, que já foi lido.
+            i++;
+        } else {
+            console.error("parâmetro " + parametros[i] + " inválido. Uso: ranking --limite 20");
+            process.exit(1);
+        }
+    }
+
+    const ranking = rede.gerarRanking();
+    // Se o limite for maior que o total de usuários, mostra todos.
+    const quantidade = Math.min(limite, ranking.length);
+
+    console.log("Ranking de engajamento, top " + quantidade + " de " + ranking.length + " usuários");
+    for (let i = 0; i < quantidade; i++) {
+        const usuario = ranking[i];
+        const posicao = String(i + 1).padStart(String(quantidade).length);
+        console.log(`${posicao}. ${usuario.usuario.padEnd(24)} engajamento ${String(usuario.engajamento()).padStart(4)}  (${usuario.qtdSeguidores} seguidores, ${usuario.totalCurtidas} curtidas)`);
+    }
+}
+
+/**
  * Carrega os dados, identifica o comando recebido por argumento e o executa.
  */
 function main() {
@@ -83,6 +119,9 @@ function main() {
             break;
         case "posts-entre":
             comandoPostsEntre(rede, parametros);
+            break;
+        case "ranking":
+            comandoRanking(rede, parametros);
             break;
         default:
             console.error('comando "' + comando + '" inválido');

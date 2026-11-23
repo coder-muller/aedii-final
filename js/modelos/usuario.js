@@ -19,6 +19,14 @@ class Usuario {
         this.totalCurtidas = 0;
     }
 
+    /**
+     * Calcula o engajamento do usuário, usado no ranking.
+     * @returns {number} Seguidores vezes 2 mais a soma das curtidas dos posts.
+     */
+    engajamento() {
+        return this.qtdSeguidores * 2 + this.totalCurtidas;
+    }
+
 }
 
 module.exports = Usuario;
