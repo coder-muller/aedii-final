@@ -164,6 +164,49 @@ class ArvoreAVL {
         return this.balancear(no);
     }
 
+    /**
+     * Busca todos os valores com chave entre inicio e fim, incluindo as duas pontas, em ordem crescente.
+     * @param {string} inicio Menor chave do intervalo (AAAA-MM-DD).
+     * @param {string} fim Maior chave do intervalo (AAAA-MM-DD).
+     * @returns {Array} Valores encontrados em ordem crescente de chave.
+     * Complexidade O(log n + k), sendo k a quantidade de nós dentro do intervalo.
+     */
+    buscarIntervalo(inicio, fim) {
+        const resultado = [];
+        this.buscarIntervaloNo(this.raiz, inicio, fim, resultado);
+        return resultado;
+    }
+
+    /**
+     * Percorre em ordem apenas os ramos que podem ter chaves dentro do intervalo.
+     * @param {NoAVL|null} no Raiz da subárvore atual.
+     * @param {string} inicio Menor chave do intervalo.
+     * @param {string} fim Maior chave do intervalo.
+     * @param {Array} resultado Lista que recebe os valores encontrados.
+     */
+    buscarIntervaloNo(no, inicio, fim, resultado) {
+        if (no === null) {
+            return;
+        }
+
+        // Só desce para a esquerda se o nó for maior que o início, porque senão tudo lá é menor que o intervalo.
+        if (inicio < no.chave) {
+            this.buscarIntervaloNo(no.esquerda, inicio, fim, resultado);
+        }
+
+        // A esquerda é visitada antes e a direita depois, assim os valores já saem em ordem crescente.
+        if (inicio <= no.chave && no.chave <= fim) {
+            for (let i = 0; i < no.valores.length; i++) {
+                resultado.push(no.valores[i]);
+            }
+        }
+
+        // Só desce para a direita se o nó for menor que o fim, porque senão tudo lá é maior que o intervalo.
+        if (no.chave < fim) {
+            this.buscarIntervaloNo(no.direita, inicio, fim, resultado);
+        }
+    }
+
 }
 
 module.exports = { ArvoreAVL, NoAVL };
