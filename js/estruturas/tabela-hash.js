@@ -1,10 +1,10 @@
-/*
+/**
  * Tabela hash com tratamento de colisões por encadeamento separado.
  * Cada posição do vetor armazena uma lista de pares de chave e valor,
  * chaves que colidem no mesmo índice são mantidas na mesma lista.
  */
 class TabelaHash {
-    /*
+    /**
      * Inicializa a tabela com todas as posições vazias.
      * @param {number} tamanho Número de posições da tabela.
      */
@@ -18,7 +18,7 @@ class TabelaHash {
         }
     }
 
-    /*
+    /**
      * Calcula o índice de uma chave usando hash polinomial.
      * A função é determinística: a mesma chave sempre gera o mesmo índice.
      * @param {string} chave Chave a ser mapeada, ex: "@john_doe".
@@ -34,12 +34,12 @@ class TabelaHash {
         return h;
     }
 
-    /*
+    /**
      * Insere um par de chave e valor na tabela.
      * Se a chave já existir, o valor associado é substituído.
      * @param {string} chave Chave do registro, ex: "john_doe".
      * @param {*} valor Dado associado à chave (ex: o objeto do usuário).
-     * Complexidade: geralmemte O(1). O(n) quando todas as chaves colidem.
+     * Complexidade: geralmente O(1). O(n) quando todas as chaves colidem.
      */
     inserir(chave, valor) {
         const lista = this.posicoes[this.hash(chave)];
@@ -54,6 +54,27 @@ class TabelaHash {
 
         lista.push([chave, valor]);
     }
+
+    /**
+     * Busca o valor associado a uma chave.
+     * @param {string} chave Chave procurada, ex.: "@john_doe".
+     * @returns {*} O valor associado, ou null se a chave não estiver na tabela.
+     * Complexidade: geralmente O(1). O(n) quando todas as chaves colidem.
+     */
+    buscar(chave) {
+        const lista = this.posicoes[this.hash(chave)];
+
+        // O índice apenas indica em qual lista procurar; como chaves distintas podem colidir no mesmo índice, é necessário comparar a chave de cada par.
+        for (let i = 0; i < lista.length; i++) {
+            if (lista[i][0] === chave) {
+                return lista[i][1];
+            }
+        }
+
+        // Caso a chave não existe na tabela retorna null
+        return null;
+    }
+
 }
 
 module.exports = TabelaHash;
