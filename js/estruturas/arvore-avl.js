@@ -55,6 +55,50 @@ class ArvoreAVL {
         return this.altura(no.esquerda) - this.altura(no.direita);
     }
 
+    /**
+     * Rotação simples à direita, usada quando o nó pende para a esquerda.
+     * @param {NoAVL} no Nó desbalanceado.
+     * @returns {NoAVL} Nova raiz da subárvore.
+     * Complexidade O(1).
+     */
+    rotacaoDireita(no) {
+        const novaRaiz = no.esquerda;
+        const meio = novaRaiz.direita;
+
+        // O filho esquerdo sobe e o nó desce para a direita dele.
+        novaRaiz.direita = no;
+        // A subárvore do meio é maior que novaRaiz e menor que no, então passa a ser o filho esquerdo de no.
+        no.esquerda = meio;
+
+        // A altura de no é atualizada primeiro porque agora ele está abaixo de novaRaiz.
+        this.atualizarAltura(no);
+        this.atualizarAltura(novaRaiz);
+
+        return novaRaiz;
+    }
+
+    /**
+     * Rotação simples à esquerda, usada quando o nó pende para a direita.
+     * @param {NoAVL} no Nó desbalanceado.
+     * @returns {NoAVL} Nova raiz da subárvore.
+     * Complexidade O(1).
+     */
+    rotacaoEsquerda(no) {
+        const novaRaiz = no.direita;
+        const meio = novaRaiz.esquerda;
+
+        // O filho direito sobe e o nó desce para a esquerda dele.
+        novaRaiz.esquerda = no;
+        // A subárvore do meio é maior que no e menor que novaRaiz, então passa a ser o filho direito de no.
+        no.direita = meio;
+
+        // A altura de no é atualizada primeiro porque agora ele está abaixo de novaRaiz.
+        this.atualizarAltura(no);
+        this.atualizarAltura(novaRaiz);
+
+        return novaRaiz;
+    }
+
 }
 
 module.exports = { ArvoreAVL, NoAVL };
