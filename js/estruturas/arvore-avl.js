@@ -99,6 +99,71 @@ class ArvoreAVL {
         return novaRaiz;
     }
 
+    /**
+     * Corrige o desbalanceamento de um nó aplicando as rotações necessárias.
+     * @param {NoAVL} no Nó que pode estar desbalanceado.
+     * @returns {NoAVL} Raiz da subárvore já balanceada.
+     * Complexidade O(1).
+     */
+    balancear(no) {
+        const fator = this.fatorBalanceamento(no);
+
+        if (fator > 1) {
+            // Se o filho esquerdo pende para a direita, ele é girado antes para que o desequilíbrio fique todo do mesmo lado.
+            if (this.fatorBalanceamento(no.esquerda) < 0) {
+                no.esquerda = this.rotacaoEsquerda(no.esquerda);
+            }
+            return this.rotacaoDireita(no);
+        }
+
+        if (fator < -1) {
+            // Se o filho direito pende para a esquerda, ele é girado antes para que o desequilíbrio fique todo do mesmo lado.
+            if (this.fatorBalanceamento(no.direita) > 0) {
+                no.direita = this.rotacaoDireita(no.direita);
+            }
+            return this.rotacaoEsquerda(no);
+        }
+
+        return no;
+    }
+
+    /**
+     * Insere um valor na árvore. Se a chave já existir, o valor é adicionado ao nó dela.
+     * @param {string} chave Chave do valor (AAAA-MM-DD).
+     * @param {*} valor Valor a ser guardado.
+     * Complexidade O(log n).
+     */
+    inserir(chave, valor) {
+        this.raiz = this.inserirNo(this.raiz, chave, valor);
+    }
+
+    /**
+     * Desce recursivamente até a posição da chave, insere e rebalanceia o caminho de volta.
+     * @param {NoAVL|null} no Raiz da subárvore atual.
+     * @param {string} chave Chave do valor.
+     * @param {*} valor Valor a ser guardado.
+     * @returns {NoAVL} Nova raiz da subárvore depois da inserção.
+     */
+    inserirNo(no, chave, valor) {
+        if (no === null) {
+            return new NoAVL(chave, valor);
+        }
+
+        if (chave < no.chave) {
+            no.esquerda = this.inserirNo(no.esquerda, chave, valor);
+        } else if (chave > no.chave) {
+            no.direita = this.inserirNo(no.direita, chave, valor);
+        } else {
+            // A chave já existe, então o valor entra na lista do nó e a estrutura da árvore não muda.
+            no.valores.push(valor);
+            return no;
+        }
+
+        // Na volta da recursão cada nó do caminho recalcula a altura e se corrige se ficou desbalanceado.
+        this.atualizarAltura(no);
+        return this.balancear(no);
+    }
+
 }
 
 module.exports = { ArvoreAVL, NoAVL };
