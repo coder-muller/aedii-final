@@ -2,6 +2,7 @@ const TabelaHash = require("./estruturas/tabela-hash");
 const { ArvoreAVL } = require("./estruturas/arvore-avl");
 const mergeSort = require("./estruturas/merge-sort");
 const Grafo = require("./estruturas/grafo");
+const Heap = require("./estruturas/heap");
 const Usuario = require("./modelos/usuario");
 const Post = require("./modelos/post");
 
@@ -43,6 +44,8 @@ class RedeSocial {
 
         // Árvore AVL com os posts indexados pela data, usada no comando posts-entre.
         this.postsPorData = new ArvoreAVL();
+        // Lista simples com todos os posts, usada no comando top-curtidos.
+        this.posts = [];
 
         for (let i = 0; i < posts.length; i++) {
             const [id, idAutor, data, curtidas, texto] = posts[i];
@@ -51,6 +54,7 @@ class RedeSocial {
             autor.qtdPosts++;
             autor.totalCurtidas += post.curtidas;
             this.postsPorData.inserir(data, post);
+            this.posts.push(post);
         }
     }
 
@@ -72,6 +76,76 @@ class RedeSocial {
      */
     buscarPostsEntre(inicio, fim) {
         return this.postsPorData.buscarIntervalo(inicio, fim);
+    }
+
+    /**
+     * Seleciona os k melhores itens de uma lista usando um heap de mínimo com no máximo k itens.
+     * @param {Array} itens Itens a serem avaliados.
+     * @param {number} k Quantidade de itens desejada.
+     * @param {Function} comparar Recebe (a, b) e devolve negativo se a é melhor que b.
+     * @returns {Array} Os k melhores itens, do melhor para o pior. Se houver menos que k itens, devolve todos.
+     * Complexidade O(n log k), porque cada um dos n itens passa por um heap que nunca passa de k itens.
+     */
+    selecionarMelhores(itens, k, comparar) {
+        // A comparação é invertida para que o pior entre os escolhidos fique no topo e seja o primeiro a sair.
+        const heap = new Heap((a, b) => comparar(b, a));
+
+        for (let i = 0; i < itens.length; i++) {
+            heap.inserir(itens[i]);
+            // Quando o heap passa de k itens, o pior sai, assim sobram sempre os k melhores vistos até agora.
+            if (heap.tamanho() > k) {
+                heap.remover();
+            }
+        }
+
+        // O heap entrega do pior para o melhor, então o resultado é preenchido de trás para frente.
+        const resultado = [];
+        for (let i = heap.tamanho() - 1; i >= 0; i--) {
+            resultado[i] = heap.remover();
+        }
+        return resultado;
+    }
+
+    /**
+     * Busca os k usuários com mais seguidores, com desempate pela ordem alfabética do @usuario.
+     * @param {number} k Quantidade de usuários.
+     * @returns {Usuario[]} Usuários do que tem mais seguidores para o que tem menos.
+     * Complexidade O(n log k).
+     */
+    topSeguidos(k) {
+        const usuarios = [];
+        for (let id = 1; id < this.usuariosPorId.length; id++) {
+            usuarios.push(this.usuariosPorId[id]);
+        }
+
+        return this.selecionarMelhores(usuarios, k, (a, b) => {
+            if (a.qtdSeguidores !== b.qtdSeguidores) {
+                return b.qtdSeguidores - a.qtdSeguidores;
+            }
+            if (a.usuario < b.usuario) {
+                return -1;
+            }
+            if (a.usuario > b.usuario) {
+                return 1;
+            }
+            return 0;
+        });
+    }
+
+    /**
+     * Busca os k posts com mais curtidas, com desempate pelo id do post.
+     * @param {number} k Quantidade de posts.
+     * @returns {Post[]} Posts do mais curtido para o menos curtido.
+     * Complexidade O(n log k).
+     */
+    topCurtidos(k) {
+        return this.selecionarMelhores(this.posts, k, (a, b) => {
+            if (a.curtidas !== b.curtidas) {
+                return b.curtidas - a.curtidas;
+            }
+            // O desempate pelo id deixa o resultado sempre igual quando dois posts têm as mesmas curtidas.
+            return a.id - b.id;
+        });
     }
 
     /**

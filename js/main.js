@@ -67,6 +67,49 @@ function comandoPostsEntre(rede, parametros) {
 }
 
 /**
+ * Mostra os k usuários com mais seguidores.
+ * @param {RedeSocial} rede Rede social já carregada.
+ * @param {string[]} parametros Parâmetros do comando; espera k.
+ */
+function comandoTopSeguidos(rede, parametros) {
+    const k = parametros[0];
+    if (k === undefined || parametros.length > 1 || !/^\d+$/.test(k) || Number(k) < 1) {
+        console.error("k deve ser um número inteiro maior que zero. Uso: top-seguidos k");
+        process.exit(1);
+    }
+
+    const usuarios = rede.topSeguidos(Number(k));
+
+    console.log("Top " + usuarios.length + " usuários com mais seguidores");
+    for (let i = 0; i < usuarios.length; i++) {
+        const posicao = String(i + 1).padStart(String(usuarios.length).length);
+        console.log(`${posicao}. ${usuarios[i].usuario.padEnd(24)} ${usuarios[i].qtdSeguidores} seguidores`);
+    }
+}
+
+/**
+ * Mostra os k posts com mais curtidas, com autor, data e texto.
+ * @param {RedeSocial} rede Rede social já carregada.
+ * @param {string[]} parametros Parâmetros do comando; espera k.
+ */
+function comandoTopCurtidos(rede, parametros) {
+    const k = parametros[0];
+    if (k === undefined || parametros.length > 1 || !/^\d+$/.test(k) || Number(k) < 1) {
+        console.error("k deve ser um número inteiro maior que zero. Uso: top-curtidos k");
+        process.exit(1);
+    }
+
+    const posts = rede.topCurtidos(Number(k));
+
+    console.log("Top " + posts.length + " posts com mais curtidas");
+    for (let i = 0; i < posts.length; i++) {
+        const post = posts[i];
+        const posicao = String(i + 1).padStart(String(posts.length).length);
+        console.log(`${posicao}. ${String(post.curtidas).padStart(4)} curtidas  ${post.data}  ${post.autor.usuario}  ${post.texto}`);
+    }
+}
+
+/**
  * Mostra as comunidades da rede, do maior tamanho para o menor, e quantos usuários estão isolados.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; não recebe nenhum.
@@ -141,6 +184,12 @@ function main() {
             break;
         case "posts-entre":
             comandoPostsEntre(rede, parametros);
+            break;
+        case "top-seguidos":
+            comandoTopSeguidos(rede, parametros);
+            break;
+        case "top-curtidos":
+            comandoTopCurtidos(rede, parametros);
             break;
         case "comunidades":
             comandoComunidades(rede, parametros);
