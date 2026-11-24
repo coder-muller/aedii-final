@@ -2,8 +2,9 @@
  * Exibe os dados cadastrais e as contagens de um usuário.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; espera @usuario.
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoBuscar(rede, parametros) {
+function comandoBuscar(rede, parametros, json) {
     const usuario = parametros[0];
     if (usuario === undefined) {
         console.error("informe o usuário. Uso: buscar @usuario");
@@ -14,6 +15,19 @@ function comandoBuscar(rede, parametros) {
     if (encontrado === null) {
         console.error("usuário " + usuario + " não encontrado.");
         process.exit(1);
+    }
+
+    if (json) {
+        // O objeto aqui é só um registro com campos fixos para gerar o JSON, e não é usado como dicionário.
+        console.log(JSON.stringify({
+            usuario: encontrado.usuario,
+            nome: encontrado.nome,
+            dataCadastro: encontrado.dataCadastro,
+            seguindo: encontrado.qtdSeguindo,
+            seguidores: encontrado.qtdSeguidores,
+            posts: encontrado.qtdPosts,
+        }, null, 2));
+        return;
     }
 
     console.log(encontrado.usuario);
@@ -28,8 +42,9 @@ function comandoBuscar(rede, parametros) {
  * Lista os posts publicados entre duas datas, incluindo as duas, em ordem cronológica.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; espera data inicial e data final.
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoPostsEntre(rede, parametros) {
+function comandoPostsEntre(rede, parametros, json) {
     const inicio = parametros[0];
     const fim = parametros[1];
     if (inicio === undefined || fim === undefined) {
@@ -56,6 +71,17 @@ function comandoPostsEntre(rede, parametros) {
     }
 
     const posts = rede.buscarPostsEntre(inicio, fim);
+
+    if (json) {
+        const lista = [];
+        for (let i = 0; i < posts.length; i++) {
+            const post = posts[i];
+            lista.push({ id: post.id, data: post.data, autor: post.autor.usuario, curtidas: post.curtidas, texto: post.texto });
+        }
+        console.log(JSON.stringify({ inicio: inicio, fim: fim, total: posts.length, posts: lista }, null, 2));
+        return;
+    }
+
     for (let i = 0; i < posts.length; i++) {
         const post = posts[i];
         console.log(`${post.data}  ${post.autor.usuario}  ${post.curtidas} curtidas  ${post.texto}`);
@@ -67,8 +93,9 @@ function comandoPostsEntre(rede, parametros) {
  * Mostra até k sugestões de pessoas para o usuário seguir, ordenadas pelas conexões em comum.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; espera @usuario e k.
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoSugerir(rede, parametros) {
+function comandoSugerir(rede, parametros, json) {
     const usuario = parametros[0];
     const k = parametros[1];
     if (usuario === undefined || k === undefined || parametros.length > 2) {
@@ -87,6 +114,15 @@ function comandoSugerir(rede, parametros) {
     }
 
     const [sugestoes, totalCandidatos] = rede.sugerir(encontrado, Number(k));
+
+    if (json) {
+        const lista = [];
+        for (let i = 0; i < sugestoes.length; i++) {
+            lista.push({ posicao: i + 1, usuario: sugestoes[i][0].usuario, conexoesEmComum: sugestoes[i][1] });
+        }
+        console.log(JSON.stringify({ usuario: encontrado.usuario, totalCandidatos: totalCandidatos, sugestoes: lista }, null, 2));
+        return;
+    }
 
     if (sugestoes.length === 0) {
         if (encontrado.qtdSeguindo === 0) {
@@ -109,8 +145,9 @@ function comandoSugerir(rede, parametros) {
  * Mostra os k usuários com mais seguidores.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; espera k.
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoTopSeguidos(rede, parametros) {
+function comandoTopSeguidos(rede, parametros, json) {
     const k = parametros[0];
     if (k === undefined || parametros.length > 1 || !/^\d+$/.test(k) || Number(k) < 1) {
         console.error("k deve ser um número inteiro maior que zero. Uso: top-seguidos k");
@@ -118,6 +155,15 @@ function comandoTopSeguidos(rede, parametros) {
     }
 
     const usuarios = rede.topSeguidos(Number(k));
+
+    if (json) {
+        const lista = [];
+        for (let i = 0; i < usuarios.length; i++) {
+            lista.push({ posicao: i + 1, usuario: usuarios[i].usuario, seguidores: usuarios[i].qtdSeguidores });
+        }
+        console.log(JSON.stringify({ total: usuarios.length, usuarios: lista }, null, 2));
+        return;
+    }
 
     console.log("Top " + usuarios.length + " usuários com mais seguidores");
     for (let i = 0; i < usuarios.length; i++) {
@@ -130,8 +176,9 @@ function comandoTopSeguidos(rede, parametros) {
  * Mostra os k posts com mais curtidas, com autor, data e texto.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; espera k.
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoTopCurtidos(rede, parametros) {
+function comandoTopCurtidos(rede, parametros, json) {
     const k = parametros[0];
     if (k === undefined || parametros.length > 1 || !/^\d+$/.test(k) || Number(k) < 1) {
         console.error("k deve ser um número inteiro maior que zero. Uso: top-curtidos k");
@@ -139,6 +186,16 @@ function comandoTopCurtidos(rede, parametros) {
     }
 
     const posts = rede.topCurtidos(Number(k));
+
+    if (json) {
+        const lista = [];
+        for (let i = 0; i < posts.length; i++) {
+            const post = posts[i];
+            lista.push({ posicao: i + 1, id: post.id, curtidas: post.curtidas, data: post.data, autor: post.autor.usuario, texto: post.texto });
+        }
+        console.log(JSON.stringify({ total: posts.length, posts: lista }, null, 2));
+        return;
+    }
 
     console.log("Top " + posts.length + " posts com mais curtidas");
     for (let i = 0; i < posts.length; i++) {
@@ -152,14 +209,29 @@ function comandoTopCurtidos(rede, parametros) {
  * Mostra as comunidades da rede, do maior tamanho para o menor, e quantos usuários estão isolados.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; não recebe nenhum.
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoComunidades(rede, parametros) {
+function comandoComunidades(rede, parametros, json) {
     if (parametros.length > 0) {
         console.error("o comando comunidades não recebe parâmetros. Uso: comunidades");
         process.exit(1);
     }
 
     const [comunidades, isolados] = rede.encontrarComunidades();
+
+    if (json) {
+        const lista = [];
+        for (let i = 0; i < comunidades.length; i++) {
+            lista.push({ posicao: i + 1, tamanho: comunidades[i].length });
+        }
+        console.log(JSON.stringify({
+            totalComunidades: comunidades.length,
+            comunidades: lista,
+            usuariosIsolados: isolados,
+            componentesConexos: comunidades.length + isolados,
+        }, null, 2));
+        return;
+    }
 
     console.log(comunidades.length + " comunidades encontradas");
     for (let i = 0; i < comunidades.length; i++) {
@@ -174,8 +246,9 @@ function comandoComunidades(rede, parametros) {
  * Mostra os primeiros colocados do ranking de engajamento.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; aceita --limite N (padrão 20).
+ * @param {boolean} json Se verdadeiro, mostra o resultado em JSON.
  */
-function comandoRanking(rede, parametros) {
+function comandoRanking(rede, parametros, json) {
     let limite = 20;
 
     for (let i = 0; i < parametros.length; i++) {
@@ -197,6 +270,22 @@ function comandoRanking(rede, parametros) {
     const ranking = rede.gerarRanking();
     // Se o limite for maior que o total de usuários, mostra todos.
     const quantidade = Math.min(limite, ranking.length);
+
+    if (json) {
+        const lista = [];
+        for (let i = 0; i < quantidade; i++) {
+            const usuario = ranking[i];
+            lista.push({
+                posicao: i + 1,
+                usuario: usuario.usuario,
+                engajamento: usuario.engajamento(),
+                seguidores: usuario.qtdSeguidores,
+                curtidas: usuario.totalCurtidas,
+            });
+        }
+        console.log(JSON.stringify({ totalUsuarios: ranking.length, ranking: lista }, null, 2));
+        return;
+    }
 
     console.log("Ranking de engajamento, top " + quantidade + " de " + ranking.length + " usuários");
     for (let i = 0; i < quantidade; i++) {

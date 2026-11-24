@@ -39,9 +39,21 @@ Opções
  * Lê o comando recebido por argumento, carrega os dados e executa o comando.
  */
 function main() {
-    // O comando começa na posição 2 e os parâmetros na 3.
-    const comando = process.argv[2];
-    const parametros = process.argv.slice(3);
+    // Os argumentos digitados começam na posição 2, porque as posições 0 e 1 são o node e o caminho do main.js.
+    // A opção --json pode vir em qualquer posição, até antes do comando, então ela é separada dos outros argumentos primeiro.
+    let json = false;
+    const argumentos = [];
+    for (let i = 2; i < process.argv.length; i++) {
+        if (process.argv[i] === "--json") {
+            json = true;
+        } else {
+            argumentos.push(process.argv[i]);
+        }
+    }
+
+    // Sem o --json, o primeiro argumento é o comando e o resto são os parâmetros dele.
+    const comando = argumentos[0];
+    const parametros = argumentos.slice(1);
 
     // A ajuda é tratada antes de carregar os dados, porque ela não precisa deles.
     if (comando === "ajuda") {
@@ -54,25 +66,25 @@ function main() {
 
     switch (comando) {
         case "buscar":
-            comandos.comandoBuscar(rede, parametros);
+            comandos.comandoBuscar(rede, parametros, json);
             break;
         case "posts-entre":
-            comandos.comandoPostsEntre(rede, parametros);
+            comandos.comandoPostsEntre(rede, parametros, json);
             break;
         case "sugerir":
-            comandos.comandoSugerir(rede, parametros);
+            comandos.comandoSugerir(rede, parametros, json);
             break;
         case "top-seguidos":
-            comandos.comandoTopSeguidos(rede, parametros);
+            comandos.comandoTopSeguidos(rede, parametros, json);
             break;
         case "top-curtidos":
-            comandos.comandoTopCurtidos(rede, parametros);
+            comandos.comandoTopCurtidos(rede, parametros, json);
             break;
         case "comunidades":
-            comandos.comandoComunidades(rede, parametros);
+            comandos.comandoComunidades(rede, parametros, json);
             break;
         case "ranking":
-            comandos.comandoRanking(rede, parametros);
+            comandos.comandoRanking(rede, parametros, json);
             break;
         default:
             // Sem comando ou com um comando desconhecido, mostra o erro e a ajuda e termina com código 1.
