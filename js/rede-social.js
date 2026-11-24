@@ -1,6 +1,7 @@
 const TabelaHash = require("./estruturas/tabela-hash");
 const { ArvoreAVL } = require("./estruturas/arvore-avl");
 const mergeSort = require("./estruturas/merge-sort");
+const Grafo = require("./estruturas/grafo");
 const Usuario = require("./modelos/usuario");
 const Post = require("./modelos/post");
 
@@ -28,10 +29,14 @@ class RedeSocial {
             this.tabelaUsuarios.inserir(usuario, novo);
         }
 
-        // Cada conexão "A segue B" soma 1 em quem A segue e 1 nos seguidores de B.
+        // Grafo de quem segue quem, em que cada usuário é um vértice identificado pelo id.
+        this.grafo = new Grafo(usuarios.length);
+
+        // Cada conexão "A segue B" vira uma aresta de A para B e soma 1 em quem A segue e 1 nos seguidores de B.
         for (let i = 0; i < seguidores.length; i++) {
             const seguidor = this.usuariosPorId[Number(seguidores[i][0])];
             const seguido = this.usuariosPorId[Number(seguidores[i][1])];
+            this.grafo.adicionarAresta(seguidor.id, seguido.id);
             seguidor.qtdSeguindo++;
             seguido.qtdSeguidores++;
         }
