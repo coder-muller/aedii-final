@@ -149,6 +149,67 @@ class RedeSocial {
     }
 
     /**
+     * Sugere até k pessoas para o usuário seguir, entre quem é seguido por alguém que ele segue (amigos de amigos).
+     * @param {Usuario} usuario Usuário que vai receber as sugestões.
+     * @param {number} k Quantidade máxima de sugestões.
+     * @returns {Array} Lista com as sugestões e o total de candidatos. Cada sugestão é [Usuario, conexões em comum].
+     * Complexidade O(V + A + c log k), sendo A as arestas olhadas a partir de quem o usuário segue e c a quantidade de candidatos.
+     */
+    sugerir(usuario, k) {
+        const seguindo = this.grafo.saida[usuario.id];
+
+        // jaSegue marca quem o usuário segue e emComum conta, para cada candidato, quantos desses seguidos também seguem ele.
+        // Os dois são vetores indexados pelo id, então marcar e consultar custa O(1).
+        const jaSegue = [];
+        const emComum = [];
+        for (let id = 0; id < this.usuariosPorId.length; id++) {
+            jaSegue.push(false);
+            emComum.push(0);
+        }
+        for (let i = 0; i < seguindo.length; i++) {
+            jaSegue[seguindo[i]] = true;
+        }
+
+        // Para cada pessoa que o usuário segue, todos que ela segue estão a distância 2 e podem virar candidatos.
+        const candidatos = [];
+        for (let i = 0; i < seguindo.length; i++) {
+            const amigosDoAmigo = this.grafo.saida[seguindo[i]];
+            for (let j = 0; j < amigosDoAmigo.length; j++) {
+                const candidato = amigosDoAmigo[j];
+                // O próprio usuário e quem ele já segue não podem ser sugeridos.
+                if (candidato === usuario.id || jaSegue[candidato]) {
+                    continue;
+                }
+                // Na primeira vez que o candidato aparece ele entra na lista, e nas outras só soma mais uma conexão em comum.
+                if (emComum[candidato] === 0) {
+                    candidatos.push(candidato);
+                }
+                emComum[candidato]++;
+            }
+        }
+
+        const avaliados = [];
+        for (let i = 0; i < candidatos.length; i++) {
+            avaliados.push([this.usuariosPorId[candidatos[i]], emComum[candidatos[i]]]);
+        }
+
+        const sugestoes = this.selecionarMelhores(avaliados, k, (a, b) => {
+            if (a[1] !== b[1]) {
+                return b[1] - a[1];
+            }
+            if (a[0].usuario < b[0].usuario) {
+                return -1;
+            }
+            if (a[0].usuario > b[0].usuario) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return [sugestoes, candidatos.length];
+    }
+
+    /**
      * Separa a rede em comunidades, que são os componentes conexos com mais de um usuário.
      * @returns {Array} Lista com as comunidades em ordem decrescente de tamanho e a quantidade de usuários isolados.
      * Complexidade O(V + E) da BFS mais O(c log c) para ordenar as c comunidades.

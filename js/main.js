@@ -67,6 +67,48 @@ function comandoPostsEntre(rede, parametros) {
 }
 
 /**
+ * Mostra até k sugestões de pessoas para o usuário seguir, ordenadas pelas conexões em comum.
+ * @param {RedeSocial} rede Rede social já carregada.
+ * @param {string[]} parametros Parâmetros do comando; espera @usuario e k.
+ */
+function comandoSugerir(rede, parametros) {
+    const usuario = parametros[0];
+    const k = parametros[1];
+    if (usuario === undefined || k === undefined || parametros.length > 2) {
+        console.error("informe o usuário e a quantidade de sugestões. Uso: sugerir @usuario k");
+        process.exit(1);
+    }
+    if (!/^\d+$/.test(k) || Number(k) < 1) {
+        console.error("k deve ser um número inteiro maior que zero. Uso: sugerir @usuario k");
+        process.exit(1);
+    }
+
+    const encontrado = rede.buscarUsuario(usuario);
+    if (encontrado === null) {
+        console.error("usuário " + usuario + " não encontrado.");
+        process.exit(1);
+    }
+
+    const [sugestoes, totalCandidatos] = rede.sugerir(encontrado, Number(k));
+
+    if (sugestoes.length === 0) {
+        if (encontrado.qtdSeguindo === 0) {
+            console.log("nenhuma sugestão para " + encontrado.usuario + ". Esse usuário não segue ninguém.");
+        } else {
+            console.log("nenhuma sugestão para " + encontrado.usuario + ". As pessoas seguidas por esse usuário não seguem ninguém novo.");
+        }
+        return;
+    }
+
+    console.log("Sugestões para " + encontrado.usuario + ", " + sugestoes.length + " de " + totalCandidatos + " candidatos");
+    for (let i = 0; i < sugestoes.length; i++) {
+        const [sugerido, emComum] = sugestoes[i];
+        const posicao = String(i + 1).padStart(String(sugestoes.length).length);
+        console.log(`${posicao}. ${sugerido.usuario.padEnd(24)} ${emComum} conexões em comum`);
+    }
+}
+
+/**
  * Mostra os k usuários com mais seguidores.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; espera k.
@@ -184,6 +226,9 @@ function main() {
             break;
         case "posts-entre":
             comandoPostsEntre(rede, parametros);
+            break;
+        case "sugerir":
+            comandoSugerir(rede, parametros);
             break;
         case "top-seguidos":
             comandoTopSeguidos(rede, parametros);
