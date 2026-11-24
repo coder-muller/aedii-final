@@ -75,6 +75,29 @@ class RedeSocial {
     }
 
     /**
+     * Separa a rede em comunidades, que são os componentes conexos com mais de um usuário.
+     * @returns {Array} Lista com as comunidades em ordem decrescente de tamanho e a quantidade de usuários isolados.
+     * Complexidade O(V + E) da BFS mais O(c log c) para ordenar as c comunidades.
+     */
+    encontrarComunidades() {
+        const componentes = this.grafo.componentesConexos();
+        const comunidades = [];
+        let isolados = 0;
+
+        for (let i = 0; i < componentes.length; i++) {
+            // Um componente com um único usuário é alguém que não segue ninguém e não é seguido por ninguém.
+            if (componentes[i].length === 1) {
+                isolados++;
+            } else {
+                comunidades.push(componentes[i]);
+            }
+        }
+
+        const ordenadas = mergeSort(comunidades, (a, b) => b.length - a.length);
+        return [ordenadas, isolados];
+    }
+
+    /**
      * Ordena todos os usuários do maior para o menor engajamento, com desempate pela ordem alfabética do @usuario.
      * @returns {Usuario[]} Usuários na ordem do ranking.
      * Complexidade O(n log n) por causa do Merge Sort.

@@ -67,6 +67,28 @@ function comandoPostsEntre(rede, parametros) {
 }
 
 /**
+ * Mostra as comunidades da rede, do maior tamanho para o menor, e quantos usuários estão isolados.
+ * @param {RedeSocial} rede Rede social já carregada.
+ * @param {string[]} parametros Parâmetros do comando; não recebe nenhum.
+ */
+function comandoComunidades(rede, parametros) {
+    if (parametros.length > 0) {
+        console.error("o comando comunidades não recebe parâmetros. Uso: comunidades");
+        process.exit(1);
+    }
+
+    const [comunidades, isolados] = rede.encontrarComunidades();
+
+    console.log(comunidades.length + " comunidades encontradas");
+    for (let i = 0; i < comunidades.length; i++) {
+        const posicao = String(i + 1).padStart(String(comunidades.length).length);
+        console.log(`${posicao}. ${comunidades[i].length} usuários`);
+    }
+    console.log(isolados + " usuários isolados");
+    console.log((comunidades.length + isolados) + " componentes conexos no total, contando cada isolado como um componente");
+}
+
+/**
  * Mostra os primeiros colocados do ranking de engajamento.
  * @param {RedeSocial} rede Rede social já carregada.
  * @param {string[]} parametros Parâmetros do comando; aceita --limite N (padrão 20).
@@ -119,6 +141,9 @@ function main() {
             break;
         case "posts-entre":
             comandoPostsEntre(rede, parametros);
+            break;
+        case "comunidades":
+            comandoComunidades(rede, parametros);
             break;
         case "ranking":
             comandoRanking(rede, parametros);
