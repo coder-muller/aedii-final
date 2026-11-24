@@ -53,7 +53,10 @@ function main() {
 
     // Sem o --json, o primeiro argumento é o comando e o resto são os parâmetros dele.
     const comando = argumentos[0];
-    const parametros = argumentos.slice(1);
+    const parametros = [];
+    for (let i = 1; i < argumentos.length; i++) {
+        parametros.push(argumentos[i]);
+    }
 
     // A ajuda é tratada antes de carregar os dados, porque ela não precisa deles.
     if (comando === "ajuda") {
